@@ -55,7 +55,9 @@ function Chat() {
   }
 
   const sendMessage = (message: any) => {
-    io(SOCKET_SERVER_URL).emit('message', message)
+    if (socket) {
+      socket.emit('message', message);
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
