@@ -1,9 +1,9 @@
-import 'dotenv/config';
+import 'dotenv/config'
 import express from 'express'
 import { Server as SocketIOServer } from 'socket.io'
 import http from 'http'
 import cors from 'cors'
-import { handleChannel } from './channelHandler'
+import { handleChannel } from './channelHandler.js'
 
 const app = express()
 app.use(cors())
