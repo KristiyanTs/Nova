@@ -3,7 +3,7 @@ import { Button, TextField, InputAdornment } from '@mui/material'
 import Spacer from './Spacer'
 import { styled } from '@mui/system'
 import SendIcon from '@mui/icons-material/Send'
-import { useSocket } from '../../services/SocketContext'
+import { useSocket } from '../services/SocketContext'
 
 type Message = {
   sender: string
@@ -109,7 +109,7 @@ function Chat() {
 export default Chat
 
 const StyledChat = styled('div')({
-  background: 'grey',
+  background: 'rgba(0, 0, 0, 0.1)',
   padding: '1rem',
   borderRadius: '5px',
   display: 'flex',
@@ -124,11 +124,10 @@ const MessagesContainer = styled('div')({
 })
 
 const MessageBubble = styled('div')({
-  backgroundColor: 'lightblue',
+  backgroundColor: 'rgba(0, 0, 0, 0.1)',
   padding: '8px',
-  borderRadius: '10px',
+  borderRadius: '4px',
   margin: '4px 0',
-  maxWidth: '80%',
   wordWrap: 'break-word',
 })
 

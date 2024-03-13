@@ -1,7 +1,7 @@
 import './App.css'
 import Chat from './components/Chat'
 import { styled } from '@mui/system'
-import { SocketProvider } from '../services/SocketContext'
+import { SocketProvider } from './services/SocketContext'
 
 function App() {
   return (
