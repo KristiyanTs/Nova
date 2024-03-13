@@ -51,7 +51,7 @@ function Chat() {
     setMessage(e.target.value)
   }
 
-  const sendMessage = (message: any) => {
+  const sendMessage = (message: Message) => {
     if (socket) {
       socket.emit('message', message)
     }
@@ -75,7 +75,9 @@ function Chat() {
                 style={{ width: 30, borderRadius: '50%', marginRight: '8px' }}
               />
               <b>{message.sender}</b> <Spacer x={1} />
-              <div className='timestampt'>{message.timestamp.split(':').slice(0, 2).join(':')}</div>
+              <div className='timestampt'>
+                {message.timestamp.split(':').slice(0, 2).join(':')}
+              </div>
             </MessageHeader>
             <p>{message.content}</p>
           </MessageBubble>
@@ -138,5 +140,5 @@ const MessageHeader = styled('div')({
   '& .timestampt': {
     fontSize: '0.8rem',
     color: 'grey',
-  }
+  },
 })
