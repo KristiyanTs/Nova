@@ -3,10 +3,7 @@ import { Button, TextField, InputAdornment } from '@mui/material'
 import Spacer from './Spacer'
 import { styled } from '@mui/system'
 import SendIcon from '@mui/icons-material/Send'
-import io from 'socket.io-client'
 import { useSocket } from '../../services/SocketContext'
-
-const SOCKET_SERVER_URL = 'http://localhost:3000'
 
 type Message = {
   sender: string
@@ -56,7 +53,7 @@ function Chat() {
 
   const sendMessage = (message: any) => {
     if (socket) {
-      socket.emit('message', message);
+      socket.emit('message', message)
     }
   }
 
@@ -77,7 +74,8 @@ function Chat() {
                 alt={`${message.sender}'s avatar`}
                 style={{ width: 30, borderRadius: '50%', marginRight: '8px' }}
               />
-              <b>{message.sender}</b> <i>{message.timestamp}</i>
+              <b>{message.sender}</b> <Spacer x={1} />
+              <div className='timestampt'>{message.timestamp.split(':').slice(0, 2).join(':')}</div>
             </MessageHeader>
             <p>{message.content}</p>
           </MessageBubble>
@@ -138,4 +136,8 @@ const MessageHeader = styled('div')({
   display: 'flex',
   alignItems: 'center',
   marginBottom: '4px',
+  '& .timestampt': {
+    fontSize: '0.8rem',
+    color: 'grey',
+  }
 })
