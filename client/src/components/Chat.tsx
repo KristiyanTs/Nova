@@ -4,6 +4,7 @@ import Spacer from './Spacer'
 import { styled } from '@mui/system'
 import SendIcon from '@mui/icons-material/Send'
 import { useSocket } from '../services/SocketContext'
+import ReactMarkdown from 'react-markdown'
 
 type Message = {
   sender: string
@@ -42,7 +43,7 @@ function Chat() {
       content: message,
       avatar: 'https://bookwiz-media.s3.amazonaws.com/Kristiyan.png',
     }
-    sendMessage(newMessage)
+    sendMessage([...messages, newMessage])
     setMessages([...messages, newMessage])
     setMessage('')
   }
@@ -51,7 +52,7 @@ function Chat() {
     setMessage(e.target.value)
   }
 
-  const sendMessage = (message: Message) => {
+  const sendMessage = (message: Message[]) => {
     if (socket) {
       socket.emit('message', message)
     }
@@ -79,7 +80,7 @@ function Chat() {
                 {message.timestamp.split(':').slice(0, 2).join(':')}
               </div>
             </MessageHeader>
-            <p>{message.content}</p>
+            <ReactMarkdown>{message.content}</ReactMarkdown>
           </MessageBubble>
         ))}
       </MessagesContainer>
@@ -117,7 +118,7 @@ const StyledChat = styled('div')({
   display: 'flex',
   flexDirection: 'column',
   height: '80vh',
-  width: '30vw',
+  width: '60vw',
 })
 
 const MessagesContainer = styled('div')({
