@@ -9,10 +9,13 @@ export const handleChannel = (socket: Socket) => {
     console.log('user disconnected')
   })
 
-  socket.on('message', async (message: IMessage[]) => {
-    console.log(message)
+  socket.on('message', async (props: {
+    message: IMessage[],
+    requirements: string
+  }) => {
+    console.log(props)
 
-    const openAIResponse = await getCompletion(message)
+    const openAIResponse = await getCompletion(props)
 
     const responseMessage: IMessage = {
       sender: 'Nova',

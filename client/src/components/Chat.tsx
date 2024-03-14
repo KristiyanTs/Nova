@@ -5,6 +5,10 @@ import { styled } from '@mui/system'
 import SendIcon from '@mui/icons-material/Send'
 import { useSocket } from '../services/SocketContext'
 import ReactMarkdown from 'react-markdown'
+import { IconButton } from '@mui/material'
+import DeleteIcon from '@mui/icons-material/Delete'
+import RetryIcon from '@mui/icons-material/Replay'
+import ContinueIcon from '@mui/icons-material/Send'
 
 type Message = {
   sender: string
@@ -17,6 +21,7 @@ function Chat() {
   const socket = useSocket()
   const [messages, setMessages] = useState<Message[]>([])
   const [message, setMessage] = useState('')
+  const [requirements, setRequirements] = useState('')
 
   useEffect(() => {
     if (socket) {
@@ -54,8 +59,15 @@ function Chat() {
 
   const sendMessage = (message: Message[]) => {
     if (socket) {
-      socket.emit('message', message)
+      socket.emit('message', {
+        message,
+        requirements,
+      })
     }
+  }
+
+  const deleteMessage = (indexToRemove: number) => {
+    setMessages(messages.filter((_, index) => index !== indexToRemove))
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -64,8 +76,27 @@ function Chat() {
     }
   }
 
+  const handleRetry = () => {
+    const newMessages = messages.slice(0, -1) // Remove the last message
+    setMessages(newMessages) // Update the state
+    sendMessage(newMessages) // Resend messages
+  }
+
+  const handleContinue = () => {
+    sendMessage(messages) // Just resend all messages
+  }
+
   return (
     <StyledChat>
+      <TextField
+        label='Requirements'
+        variant='outlined'
+        value={requirements}
+        onChange={(e) => setRequirements(e.target.value)}
+        fullWidth
+        multiline
+      />
+      <Spacer y={1} />
       <MessagesContainer>
         {messages.map((message, index) => (
           <MessageBubble key={index}>
@@ -76,13 +107,41 @@ function Chat() {
                 style={{ width: 30, borderRadius: '50%', marginRight: '8px' }}
               />
               <b>{message.sender}</b> <Spacer x={1} />
-              <div className='timestampt'>
+              <div className='timestamp'>
                 {message.timestamp.split(':').slice(0, 2).join(':')}
               </div>
+              <IconButton
+                aria-label='delete'
+                onClick={() => deleteMessage(index)}
+                size='small'
+                style={{ marginLeft: 'auto' }}
+              >
+                <DeleteIcon fontSize='small' />
+              </IconButton>
             </MessageHeader>
             <ReactMarkdown>{message.content}</ReactMarkdown>
           </MessageBubble>
         ))}
+        {messages.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              padding: '10px',
+            }}
+          >
+            <IconButton aria-label='retry' onClick={handleRetry} size='large'>
+              <RetryIcon />
+            </IconButton>
+            <IconButton
+              aria-label='continue'
+              onClick={handleContinue}
+              size='large'
+            >
+              <ContinueIcon />
+            </IconButton>
+          </div>
+        )}
       </MessagesContainer>
       <Spacer y={1} />
       <form onSubmit={handleSubmit}>
@@ -124,22 +183,35 @@ const StyledChat = styled('div')({
 const MessagesContainer = styled('div')({
   overflowY: 'auto',
   flex: 1,
+  position: 'relative',
 })
 
-const MessageBubble = styled('div')({
+const MessageBubble = styled('div')(() => ({
   backgroundColor: 'rgba(0, 0, 0, 0.1)',
   padding: '8px',
   borderRadius: '4px',
   margin: '4px 0',
   wordWrap: 'break-word',
-})
+  '&:hover': {
+    '& .MuiIconButton-root': {
+      visibility: 'visible',
+      opacity: 1,
+      transition: 'opacity 0.5s',
+    },
+  },
+}))
 
-const MessageHeader = styled('div')({
+const MessageHeader = styled('div')(() => ({
   display: 'flex',
   alignItems: 'center',
   marginBottom: '4px',
-  '& .timestampt': {
+  '& .timestamp': {
     fontSize: '0.8rem',
     color: 'grey',
   },
-})
+  '& .MuiIconButton-root': {
+    visibility: 'hidden',
+    marginLeft: 'auto',
+    opacity: 0.5,
+  },
+}))
