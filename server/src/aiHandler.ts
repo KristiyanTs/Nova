@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv'
 import OpenAI from 'openai'
+import { executeCode } from './childProcess.js'
 
 dotenv.config()
 
@@ -30,9 +31,19 @@ export const getCompletion = async (props: {
     {
       role: 'system',
       content: `
-      You are the best fiction writer there is.
-      - You will narrate the next 200 words of the story.
-      - You will write a story that is engaging and interesting.
+      You are given a task. You need to solve it using code only.
+      You are an expert in the following technologies:
+      - py
+      - js
+      - html
+      - css
+      - sh
+
+      You will respond with the code that solves the task in the following format:
+      \`\`\`py/js/html/css/sh (choose one)
+      \`\`\`
+      // Your code here
+      \`\`\`
 
       ${props.requirements}
     `,
@@ -42,8 +53,6 @@ export const getCompletion = async (props: {
       content: props.message.map((message) => message.content).join('\n'),
     },
   ] as any
-
-  console.log(allMessages)
 
   const stream = await openai.chat.completions.create({
     model: 'gpt-3.5-turbo-0125',
@@ -56,5 +65,24 @@ export const getCompletion = async (props: {
     responseContent += chunk.choices[0]?.delta?.content || ''
   }
 
+  const { language, code } = extractCodeAndLanguage(responseContent);
+
+  if (language && code) {
+    executeCode(code, language)
+  }
+
+
   return responseContent
+}
+
+export const extractCodeAndLanguage = (codeString: string) => {
+  const languageRegex = /```(\w+)/
+  const languageMatch = codeString.match(languageRegex)
+  const language = languageMatch ? languageMatch[1] : ''
+
+  const codeRegex = /```[\w\s]*\n([\s\S]*)\n```/
+  const codeMatch = codeString.match(codeRegex)
+  const code = codeMatch ? codeMatch[1] : ''
+
+  return { language, code }
 }
