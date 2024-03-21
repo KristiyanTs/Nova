@@ -1,7 +1,10 @@
-import { execSync } from 'child_process'
-import fs from 'fs'
-import path from 'path'
-import { v4 as uuidv4 } from 'uuid'
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { v4 as uuidv4 } from 'uuid';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const executeCode = (code: string, language: string) => {
   const workDir = path.join(__dirname, 'work', uuidv4())
