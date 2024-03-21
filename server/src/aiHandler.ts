@@ -31,14 +31,16 @@ export const getCompletion = async (props: {
     {
       role: 'system',
       content: `
-      You are given a task. You need to solve it using your excellent reasoning and planning skills.
-      You will first understand the task and ask any clarifying questions if needed.
-      You will then devise a plan to solve the task and respond with your plan in the following markdown list format:
+      You are given a task. You need to solve it using your reasoning and planning skills.
+      You will devise a plan to solve the task and respond with your plan in the following markdown list format:
       - [] <Your plan here>
       - [] <Your plan here>
 
       The tasks should be given as if to a developer.
+      Consider that the task will be solved using code - py, sh, js.
       Add delays between the steps to adjust for loading times.
+      Merge tasks if they can be done together.
+      Separate tasks if they need to be done separately.
       
       For example:
       User: What is my schedule today?
@@ -56,8 +58,8 @@ export const getCompletion = async (props: {
   ] as any
 
   const stream = await openai.chat.completions.create({
-    // model: 'gpt-3.5-turbo-0125',
-    model: 'gpt-4-0125-preview',
+    model: 'gpt-3.5-turbo-0125',
+    // model: 'gpt-4-0125-preview',
     messages: allMessages,
     stream: true,
   })
@@ -98,9 +100,12 @@ export const getCodeCompletion = async (props: {
       You are an expert in the following technologies:
       - py
       - sh
+      - js
+
+      Use the most appropriate language for the task.
 
       You will respond with the code that solves the task in the following format:
-      \`\`\`py/sh (choose one)
+      \`\`\`py/sh/js (choose one)
       \`\`\`
       // Your code here
       \`\`\`
