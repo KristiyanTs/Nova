@@ -4,9 +4,13 @@ import { Server as SocketIOServer } from 'socket.io'
 import http from 'http'
 import cors from 'cors'
 import { handleChannel } from './channelHandler.js'
+import eventsRoutes from './routes/eventsRoutes.js'
 
 const app = express()
 app.use(cors())
+app.use(express.json())
+
+app.use('/api', eventsRoutes)
 
 const server = http.createServer(app)
 const io = new SocketIOServer(server, {
