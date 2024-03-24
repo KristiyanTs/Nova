@@ -1,11 +1,11 @@
 import path from 'path'
 import process from 'process'
-import { authenticate } from '@google-cloud/local-auth';
-import { google } from 'googleapis';
-import * as fs from 'fs/promises';
+import { authenticate } from '@google-cloud/local-auth'
+import { google } from 'googleapis'
+import * as fs from 'fs/promises'
 
 // If modifying these scopes, delete token.json.
-const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+const SCOPES = ['https://www.googleapis.com/auth/calendar']
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
@@ -71,15 +71,70 @@ export async function authorize() {
  * Lists the next 10 events on the user's primary calendar.
  * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
  */
-export async function listEvents(auth: any) {
+export async function listEvents(auth: any, startDate: string, endDate: string) {
   const calendar = google.calendar({ version: 'v3', auth })
   const res = await calendar.events.list({
     calendarId: 'primary',
-    timeMin: new Date().toISOString(),
-    maxResults: 10,
+    timeMin: startDate,
+    timeMax: endDate,
     singleEvents: true,
     orderBy: 'startTime',
   })
   const events = res.data.items
   return events
+}
+
+/**
+ * Create a new event on the user's primary calendar.
+ * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
+ */
+export const createNewEvent = async (auth: any, event: any) => {
+  const calendar = google.calendar({ version: 'v3', auth })
+
+  const calendarObject = {
+    calendarId: 'primary',
+    resource: event,
+  }
+
+  const res = await calendar.events.insert(calendarObject as any)
+  return res.data
+}
+
+/**
+ * Update an event on the user's primary calendar.
+ * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
+ * @param {string} eventId The event ID to update.
+ * @param {object} event The new event data.
+ * @return {Promise<object>} The updated event.
+ *
+ */
+export const editEvent = async (auth: any, eventId: string, event: any) => {
+  const calendar = google.calendar({ version: 'v3', auth })
+
+  const calendarObject = {
+    calendarId: 'primary',
+    eventId,
+    resource: event,
+  }
+
+  const res = await calendar.events.update(calendarObject as any)
+  return res.data
+}
+
+/**
+ * Delete an event on the user's primary calendar.
+ * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
+ * @param {string} eventId The event ID to delete.
+ * @return {Promise<object>} The deleted event.
+ */
+export const removeEvent = async (auth: any, eventId: string) => {
+  const calendar = google.calendar({ version: 'v3', auth })
+
+  const calendarObject = {
+    calendarId: 'primary',
+    eventId,
+  }
+
+  const res = await calendar.events.delete(calendarObject as any)
+  return res.data
 }

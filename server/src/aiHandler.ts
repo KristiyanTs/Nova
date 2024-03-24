@@ -21,6 +21,18 @@ const openai = new OpenAI({
   apiKey: apiKey,
 })
 
+const commonMessages = `
+  Today is ${new Date().toDateString()}.
+  User name is Kristiyan. User is a software engineer.
+  user is based in Sofia, Bulgaria. 
+  
+  In your response be:
+  - intelligent and creative
+  - helpful and informative
+  - brief and concise
+  - sarcastic and use satire
+`
+
 export const getCompletion = async (props: {
   message: Message[]
   requirements: string
@@ -31,22 +43,14 @@ export const getCompletion = async (props: {
     {
       role: 'system',
       content: `
+      You are the best AI assistant in the world.
       You are given a task. You need to solve it using your reasoning and planning skills.
-      You will devise a plan to solve the task and respond with your plan in the following markdown list format:
+      You will devise a plan and respond with your plan in the following markdown format:
       - [] <Your plan here>
       - [] <Your plan here>
 
-      The tasks should be given as if to a developer.
       Consider that the task will be solved using code - py, sh, js.
-      Add delays between the steps to adjust for loading times.
-      Merge tasks if they can be done together.
-      Separate tasks if they need to be done separately.
-      
-      For example:
-      User: What is my schedule today?
-      AI:
-      - [] Open Google Calendar in the browser
-      - [] Find the events scheduled for today
+      Use as few steps as possible.
 
       ${props.requirements}
     `,
@@ -78,9 +82,9 @@ export const getCompletion = async (props: {
     const codeCompletion = await getCodeCompletion({
       message: props.message,
       requirements: task,
-    });
-    console.log('Code completion:');
-    console.log(codeCompletion);
+    })
+    console.log('Code completion:')
+    console.log(codeCompletion)
   }
 
   return responseContent
@@ -96,12 +100,10 @@ export const getCodeCompletion = async (props: {
     {
       role: 'system',
       content: `
-      You are given a task. You need to solve it using code only.
-      You are an expert in the following technologies:
-      - py
-      - sh
-      - js
+      Today is ${new Date().toDateString()}.
 
+      You are given a task. You need to solve it using code only.
+      You can run code in py, sh, js.
       Use the most appropriate language for the task.
 
       You will respond with the code that solves the task in the following format:
@@ -109,6 +111,36 @@ export const getCodeCompletion = async (props: {
       \`\`\`
       // Your code here
       \`\`\`
+
+      [Interface]
+      Fetch google events:
+      curl localhost:3000/api/events?startDate=2021-09-01T00:00:00Z&endDate=2021-09-30T23:59:59Z
+      Create a new google event:
+      curl -X POST http://localhost:3000/api/events \
+        -H "Content-Type: application/json" \
+        -d '{
+          "calendarId": "primary",
+          "summary": "Example Event",
+          "location": "Sofia, Bulgaria",
+          "description": "This is a test event created via API.",
+          "start": {
+            "dateTime": "2024-03-25T10:00:00",
+            "timeZone": "Europe/Sofia"
+          },
+          "end": {
+            "dateTime": "2024-03-26T17:00:00-07:00",
+            "timeZone": "Europe/Sofia"
+          }
+        }'
+      Update a google event:
+      curl -X PATCH http://localhost:3000/api/events/:eventId \
+        -H "Content-Type: application/json" \
+        -d '{
+          "summary": "Updated Event"
+        }'
+      Delete a google event:
+      curl -X DELETE http://localhost:3000/api/events/:eventId
+      [/Interface]
 
       ${props.requirements}
     `,
@@ -130,7 +162,7 @@ export const getCodeCompletion = async (props: {
     responseContent += chunk.choices[0]?.delta?.content || ''
   }
 
-  const { language, code } = extractCodeAndLanguage(responseContent);
+  const { language, code } = extractCodeAndLanguage(responseContent)
 
   if (language && code) {
     console.log('Code:')
