@@ -21,16 +21,50 @@ const openai = new OpenAI({
   apiKey: apiKey,
 })
 
-const commonMessages = `
+const systemMessage = `
+  Think like a computer scientist.
   Today is ${new Date().toDateString()}.
-  User name is Kristiyan. User is a software engineer.
-  user is based in Sofia, Bulgaria. 
+  User name is Kristiyan. User has a CS degree.
+  User is based in Sofia, Bulgaria. 
   
   In your response be:
   - intelligent and creative
-  - helpful and informative
   - brief and concise
+  - brief and concise
+  - step by step
   - sarcastic and use satire
+  - use emojis
+  - be exact and remember key details
+
+  Special Commands:
+  - TERMINATE: stop the conversation (to ask for a new task or a clarification)
+
+  Specialized Agents:
+  - NOVA: manages everything except specialized agents' skills
+  - CALENDAR: manage calendar events (API)
+  - EMAIL: manage email (API)
+  - TASKS: manage tasks (API)
+  - NOTES: manage notes (API)
+  - MEMORY: remember/forget/find something in memory
+
+  Remember things you have to do. Examples:
+  "[MEMORY] to create a new event on 26th of March at 10:00AM-11:00AM in Vkashti Bar.[/MEMORY]"
+  "[MEMORY] to send an email to John Doe with the event details.'[/MEMORY]"
+  "TERMINATE" \n
+
+  First, answers the user's question like an AI assistant.
+      
+  If you think you can't solve the task, 
+  ask the user to create a new agent and (name + a set of skills required).
+
+  You may call multiple agents in one message, each on a new line.
+  
+  In the DELEGATE command, provide all the necessary information for the task.
+  Write a plan step by step.
+  
+  The tasks will be executed in the order they are written.
+  
+  At the end, for each step, assign a task to a specialized agent.
 `
 
 export const getCompletion = async (props: {
@@ -43,16 +77,7 @@ export const getCompletion = async (props: {
     {
       role: 'system',
       content: `
-      You are the best AI assistant in the world.
-      You are given a task. You need to solve it using your reasoning and planning skills.
-      You will devise a plan and respond with your plan in the following markdown format:
-      - [] <Your plan here>
-      - [] <Your plan here>
-
-      Consider that the task will be solved using code - py, sh, js.
-      Use as few steps as possible.
-
-      ${props.requirements}
+      ${systemMessage}
     `,
     },
     {
@@ -62,8 +87,8 @@ export const getCompletion = async (props: {
   ] as any
 
   const stream = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo-0125',
-    // model: 'gpt-4-0125-preview',
+    // model: 'gpt-3.5-turbo-0125',
+    model: 'gpt-4-0125-preview',
     messages: allMessages,
     stream: true,
   })
@@ -72,20 +97,6 @@ export const getCompletion = async (props: {
     responseContent += chunk.choices[0]?.delta?.content || ''
   }
 
-  const tasks = extractTasks(responseContent)
-  if (tasks.length > 0) {
-    console.log('Tasks:')
-    tasks.forEach((task) => console.log(`- ${task}`))
-  }
-
-  for (const task of tasks) {
-    const codeCompletion = await getCodeCompletion({
-      message: props.message,
-      requirements: task,
-    })
-    console.log('Code completion:')
-    console.log(codeCompletion)
-  }
 
   return responseContent
 }
@@ -100,19 +111,19 @@ export const getCodeCompletion = async (props: {
     {
       role: 'system',
       content: `
-      Today is ${new Date().toDateString()}.
+      ${systemMessage}
 
       You are given a task. You need to solve it using code only.
       You can run code in py, sh, js.
       Use the most appropriate language for the task.
-
-      You will respond with the code that solves the task in the following format:
+      Write the full code that solves the task.
+      Use the following format:
       \`\`\`py/sh/js (choose one)
       \`\`\`
       // Your code here
       \`\`\`
 
-      [Interface]
+      [Interfaces]
       Fetch google events:
       curl localhost:3000/api/events?startDate=2021-09-01T00:00:00Z&endDate=2021-09-30T23:59:59Z
       Create a new google event:
@@ -127,10 +138,7 @@ export const getCodeCompletion = async (props: {
             "dateTime": "2024-03-25T10:00:00",
             "timeZone": "Europe/Sofia"
           },
-          "end": {
-            "dateTime": "2024-03-26T17:00:00-07:00",
-            "timeZone": "Europe/Sofia"
-          }
+          "end": ...
         }'
       Update a google event:
       curl -X PATCH http://localhost:3000/api/events/:eventId \
@@ -140,7 +148,7 @@ export const getCodeCompletion = async (props: {
         }'
       Delete a google event:
       curl -X DELETE http://localhost:3000/api/events/:eventId
-      [/Interface]
+      [/Interfaces]
 
       ${props.requirements}
     `,
@@ -183,10 +191,4 @@ export const extractCodeAndLanguage = (codeString: string) => {
   const code = codeMatch ? codeMatch[1] : ''
 
   return { language, code }
-}
-
-export const extractTasks = (codeString: string) => {
-  const taskRegex = /- \[\] (.*)/g
-  const tasks = codeString.matchAll(taskRegex)
-  return Array.from(tasks).map((match) => match[1])
 }
