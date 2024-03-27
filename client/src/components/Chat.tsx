@@ -81,7 +81,7 @@ function Chat() {
       socket.emit('message', {
         message,
         requirements,
-        model
+        model,
       })
     }
   }
@@ -109,7 +109,7 @@ function Chat() {
   return (
     <StyledChat>
       <Grid container spacing={2}>
-        <Grid item xs={6}>
+        <Grid item xs={9}>
           <TextField
             label='Requirements'
             variant='outlined'
@@ -119,7 +119,7 @@ function Chat() {
             multiline
           />
         </Grid>
-        <Grid item xs={6}>
+        <Grid item xs={3}>
           <ModelSelect model={model} setModel={setModel} />
         </Grid>
       </Grid>
