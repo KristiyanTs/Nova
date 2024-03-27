@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Button, TextField, InputAdornment } from '@mui/material'
+import { Button, TextField, InputAdornment, Grid } from '@mui/material'
 import Spacer from './Spacer'
 import { styled } from '@mui/system'
 import SendIcon from '@mui/icons-material/Send'
@@ -9,6 +9,7 @@ import { IconButton } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import RetryIcon from '@mui/icons-material/Replay'
 import ContinueIcon from '@mui/icons-material/Send'
+import ModelSelect, { models } from './ModelSelect'
 
 type Message = {
   id?: string
@@ -20,6 +21,7 @@ type Message = {
 
 function Chat() {
   const socket = useSocket()
+  const [model, setModel] = useState(models[2].value)
   const [messages, setMessages] = useState<Message[]>([])
   const [message, setMessage] = useState('')
   const [requirements, setRequirements] = useState('')
@@ -79,6 +81,7 @@ function Chat() {
       socket.emit('message', {
         message,
         requirements,
+        model
       })
     }
   }
@@ -105,14 +108,21 @@ function Chat() {
 
   return (
     <StyledChat>
-      <TextField
-        label='Requirements'
-        variant='outlined'
-        value={requirements}
-        onChange={(e) => setRequirements(e.target.value)}
-        fullWidth
-        multiline
-      />
+      <Grid container spacing={2}>
+        <Grid item xs={6}>
+          <TextField
+            label='Requirements'
+            variant='outlined'
+            value={requirements}
+            onChange={(e) => setRequirements(e.target.value)}
+            fullWidth
+            multiline
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <ModelSelect model={model} setModel={setModel} />
+        </Grid>
+      </Grid>
       <Spacer y={1} />
       <MessagesContainer>
         {messages.map((message, index) => (
