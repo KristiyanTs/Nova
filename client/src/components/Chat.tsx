@@ -11,6 +11,7 @@ import RetryIcon from '@mui/icons-material/Replay'
 import ContinueIcon from '@mui/icons-material/Send'
 
 type Message = {
+  id?: string
   sender: string
   timestamp: string
   content: string
@@ -26,9 +27,25 @@ function Chat() {
   useEffect(() => {
     if (socket) {
       console.log('Socket connected')
-      socket.on('message', (message) => {
-        console.log(message)
-        setMessages((prevMessages) => [...prevMessages, message])
+      socket.on('message', (incomingMessage) => {
+        setMessages((prevMessages) => {
+          const existingMessageIndex = prevMessages.findIndex(
+            (msg) => msg.id === incomingMessage.id
+          )
+          if (existingMessageIndex !== -1) {
+            // Find the existing message
+            const updatedMessages = [...prevMessages]
+            const existingMessage = updatedMessages[existingMessageIndex]
+            // Simple deduplication check: only append if the incoming message is different from the last part of the existing message
+            if (!existingMessage.content.endsWith(incomingMessage.content)) {
+              existingMessage.content += incomingMessage.content // Append non-duplicate content
+            }
+            return updatedMessages
+          } else {
+            // No existing message with the same ID; add as new message.
+            return [...prevMessages, incomingMessage]
+          }
+        })
       })
 
       return () => {
